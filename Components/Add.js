@@ -12,19 +12,21 @@ export default class Add extends Component {
         data:[],
     }
 
-    pushItem(){
+    pushItem = async() => {
         if(this.props.index != undefined){
             this.state.data[this.props.index].title = this.state.title;
             this.state.data[this.props.index].desc = this.state.description;
-            AsyncStorage.setItem('data',JSON.stringify(this.state.data));
-            Actions.reset('main', {newData: {'title': this.state.title, 'desc': this.state.description}});            
+            await AsyncStorage.setItem('data',JSON.stringify(this.state.data));
+            Actions.pop();
+            Actions.refresh({key: Math.random() });        
         }else{
            this.state.data.push({'title':this.state.title,'desc':this.state.description});
             this.setState(this.state.data)
              this.setState({title: ''})
             this.setState({description: ''})
-            AsyncStorage.setItem('data',JSON.stringify(this.state.data));
-             Actions.reset('main', {newData: {'title': this.state.title, 'desc': this.state.description}});
+            await AsyncStorage.setItem('data',JSON.stringify(this.state.data));
+            Actions.pop();
+            Actions.refresh({key: Math.random() });
         }
     }
 
