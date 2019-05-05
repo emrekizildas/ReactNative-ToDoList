@@ -1,22 +1,23 @@
 import React, {Component} from 'react';
 import {View,Text,Dimensions,TouchableOpacity,AsyncStorage} from 'react-native';
 import {Actions} from 'react-native-router-flux';
+import { deleteTodoList } from '../Actions';
+import { connect } from 'react-redux';
 
 
 const {width, height}=Dimensions.get('window');
 
 class ListItems extends Component{
+
     delete(){
-        this.props.array.data.splice(this.props.index,1);
-        AsyncStorage.setItem('data',JSON.stringify(this.props.array.data));
-        Actions.replace('main');
+        const array = this.props.data.filter((item, index) => index !== this.props.index);
+        this.props.deleteTodoList(array);
     }
+
     update(){
-        // this.props.array.i=this.props.index;
-        // this.props.array.title=this.props.list.title;
-        // this.props.array.description=this.props.list.desc;
-        Actions.push('add', {index: this.props.index, title: this.props.list.title, desc: this.props.list.desc})
+        Actions.push('add', { index: this.props.index, isupdate: true })
     }
+
     render(){
         return(
             <View style={styles.listItems}>
@@ -71,4 +72,8 @@ const styles={
     }
 };
 
-export default ListItems;
+const mapStateToProps = ({ todoListResponse }) => {
+    return { data: todoListResponse.data, isCreate: todoListResponse.isCreate, isUpdate: todoListResponse.isUpdate}
+};
+
+export default connect(mapStateToProps, { deleteTodoList })(ListItems);

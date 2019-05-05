@@ -1,38 +1,31 @@
 import React, {Component} from 'react';
 import { Dimensions,View,FlatList,AsyncStorage} from 'react-native';
 import ListItems from './ListItems';
+import { connect } from 'react-redux';
+import { getTodoList } from '../Actions';
+import { listData } from '../const'
 
 
 const { width, height } = Dimensions.get('window');
 class Main extends Component{
-    constructor(props){
-        super(props);
-        this.state={
-            title:'',
-            description:'',
-            i:-1,
-            data:[]
-        }
-    }
 
-    componentWillMount() {
-       AsyncStorage.getItem('data')
-       .then(value => this.setState({ data: JSON.parse(value) }));
+    componentDidMount() {
+        this.props.getTodoList();
     }
 
     render(){
         return(
             <View style={styles.main}>
             <FlatList
-                data={this.state.data.map((item)=>item)}
-                keyExtractor={(object, index) => 'a'+index}
+                data={this.props.data}
+                keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item,i }) => {
                     return (
                         <ListItems 
                             key={i}
                             list={item} 
-                            array={this.state} 
-                            index={this.state.data.indexOf(item)}
+                            array={this.props.data} 
+                            index={this.props.data.indexOf(item)}
                             />
                     );
                   }}
@@ -41,8 +34,6 @@ class Main extends Component{
         );
     }
 }
-
-export default Main;
 
 const styles = {
     main:{
@@ -55,3 +46,10 @@ const styles = {
         flexDirection: 'column',
     }
 };
+
+const mapStateToProps = ({ todoListResponse }) => {
+    // console.log('globalden Gelen liste objesi ', todoListResponse);
+    return { data: todoListResponse.data }
+};
+
+export default connect(mapStateToProps, { getTodoList })(Main);

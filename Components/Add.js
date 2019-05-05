@@ -2,40 +2,63 @@ import React, { Component } from 'react';
 import { TextInput, View, Dimensions, AsyncStorage } from 'react-native';
 import Button from './Button';
 import {Actions} from 'react-native-router-flux';
+import { addTodoList, getTodoList, updateTodoList } from '../Actions';
+import { connect } from 'react-redux';
+
 
 const { width, height } = Dimensions.get('window');
-export default class Add extends Component {
+
+let data = [];
+
+class Add extends Component {
     state = {
         title: '',
-        description: '',
-        i:-1,
-        data:[],
+        desc: '',
+        data: []
     }
 
-    pushItem = async() => {
-        if(this.props.index != undefined){
-            this.state.data[this.props.index].title = this.state.title;
-            this.state.data[this.props.index].desc = this.state.description;
-            await AsyncStorage.setItem('data',JSON.stringify(this.state.data));
-            Actions.pop();
-            Actions.refresh({key: Math.random() });        
+    pushItem = () => {
+        const params = { 
+            title: this.state.title,
+            desc: this.state.desc,
+        };
+        if(this.props.isupdate){
+            data[this.props.index].title = params.title;
+            data[this.props.index].desc = params.desc;
+            this.props.updateTodoList(data);      
         }else{
-           this.state.data.push({'title':this.state.title,'desc':this.state.description});
-            this.setState(this.state.data)
-             this.setState({title: ''})
-            this.setState({description: ''})
-            await AsyncStorage.setItem('data',JSON.stringify(this.state.data));
-            Actions.pop();
-            Actions.refresh({key: Math.random() });
+            this.props.addTodoList(params);
         }
     }
 
     componentWillMount(){
-        AsyncStorage.getItem('data')
-        .then(value => this.setState({ data: JSON.parse(value) }));
-        if(this.props.index != undefined){
-            this.setState({ title: this.props.title });
-            this.setState({ description: this.props.desc })
+        this.props.getTodoList();
+    }
+
+    componentDidMount(){
+          data = this.props.data;
+          if(this.props.isupdate) {
+              const { title, desc } = data[this.props.index];
+              this.setState({
+                  title,
+                  desc, 
+              });
+          }
+    }
+
+    async componentWillReceiveProps(props) {
+        if(props.isCreate) {
+            const str = JSON.stringify(props.data);
+            await AsyncStorage.setItem('data', str);
+            props.isCreate = false;
+            Actions.pop();
+        }
+
+        if(props.isUpdate){
+            console.log('update çalıştı.');
+            await AsyncStorage.setItem('data',JSON.stringify(data));
+            props.isUpdate = false;
+            Actions.pop();
         }
     }
 
@@ -57,8 +80,8 @@ export default class Add extends Component {
                     multiline={true}
                     numberOfLines={40}
                     style={{borderColor:"black", borderWidth:0.3, height: 100}}
-                    onChangeText={(text)=>this.setState({description: text})}
-                    value={this.state.description}
+                    onChangeText={(text)=>this.setState({desc: text})}
+                    value={this.state.desc}
                 />
             </View>
             <Button onClick={this.pushItem.bind(this)} />
@@ -72,3 +95,9 @@ const styles = {
         width: width*0.9,
     }
 }
+
+const mapStateToProps = ({ todoListResponse }) => {
+    return { data: todoListResponse.data, isCreate: todoListResponse.isCreate, isUpdate: todoListResponse.isUpdate}
+};
+
+export default connect(mapStateToProps, { addTodoList, getTodoList, updateTodoList })(Add);
