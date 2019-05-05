@@ -3,7 +3,6 @@ import { Dimensions,View,FlatList,AsyncStorage} from 'react-native';
 import ListItems from './ListItems';
 import { connect } from 'react-redux';
 import { getTodoList } from '../Actions';
-import { listData } from '../const'
 
 
 const { width, height } = Dimensions.get('window');
